@@ -680,6 +680,7 @@ html:not(.rdy) .site-foot{visibility:hidden;}
 .tr-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);margin-bottom:8px;min-width:0;}
 .tr-row b{color:var(--cyan);font-size:.86rem;min-width:30px;}.tr-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.tr-row:hover{text-decoration:none;border-color:var(--cyan);}
 @media (max-width:420px){.tr-row{padding:10px 10px;gap:6px;font-size:.9rem;}}
+.tr-cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;}.tr-cols>div{min-width:0;}.tr-row{width:100%;box-sizing:border-box;padding:10px 10px;gap:8px;}.tr-row b{min-width:0;flex:none;}.tr-row span{min-width:0;flex:1;}
 
 </style>
 </head>
@@ -692,7 +693,7 @@ html:not(.rdy) .site-foot{visibility:hidden;}
 <div id="start">
 <section class="sec" id="rnSec" hidden><div class="sec-head"><div><span class="kick mono" data-f="search.rightK">RIGHT NOW</span><h2><span id="rnHead"></span></h2><p class="live-note" style="margin-top:8px;max-width:58ch" data-f="search.rightD">Here is what fits this moment.</p></div></div>
   <div class="vibe-card card" id="vibeCard"><div class="vc-top"><span class="sk" style="width:160px;height:22px"></span></div><div class="vc-grid"><div class="sk" style="height:96px"></div><div class="sk" style="height:96px"></div></div></div></section>
-<section class="sec" id="trSec" hidden><div class="sec-head"><div><span class="kick mono" data-f="search.trK">TRENDING</span><h2><span data-f="search.trH">Trending searches</span></h2></div><a class="see-all" href="/trending/">See all trending &rarr;</a></div><div class="tr-cols" id="trTerms"></div></section>
+<section class="sec" id="trSec" hidden><div class="sec-head"><div><span class="kick mono" data-f="search.trK">TRENDING</span><h2><span data-f="search.trH">Trending searches</span></h2></div></div><div class="tr-cols" id="trTerms"></div></section>
 <section class="sec" id="plSec" hidden><div class="sec-head"><div><h2><span data-f="search.plH">Places people are checking out</span></h2></div></div><div id="plList"></div></section>
 </div>
 <span hidden data-f="search.phA">Start typing to discover something</span><span hidden data-f="search.phB">Try a mood, a place, or a plan, for example...</span>
