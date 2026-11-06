@@ -431,13 +431,38 @@
   .pf-card:hover .pf-link svg{transform:translate(3px,-3px);}
   .pf-cta{margin-top:52px;}
   .pf-template-badge{
-    position:absolute;top:14px;right:14px;z-index:2;
-    background:rgba(13,11,43,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    color:#fff;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;
-    padding:6px 10px;border-radius:2px;border:1px solid rgba(255,255,255,0.25);
-    display:flex;align-items:center;gap:6px;
-  }
-  .pf-template-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--cyan);flex-shrink:0;}
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:2;
+  background:rgba(13,11,43,0.72);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  color:#fff;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.07em;
+  text-transform:uppercase;
+  padding:6px 10px;
+  border-radius:2px;
+  border:1px solid rgba(255,255,255,0.25);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.pf-template-badge::before{
+  content:'';
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--cyan);
+  flex-shrink:0;
+}
+
+.pf-template-badge.sold-out::before{
+  background:#e53935;
+}
 
   /* SHOW MORE PAGINATION */
   .pf-extra{display:none;}
@@ -1327,7 +1352,12 @@
       : `<div class="pf-ph">${initials(p.name)}</div>`;
     return `<div class="pf-card pf-in" style="--d:${(i%9)*0.05}s">
       <div class="pf-img-wrap">
-        ${p.template ? '<div class="pf-template-badge">Template Available</div>' : ''}
+        ${p.template === true
+  ? '<div class="pf-template-badge">Template Available</div>'
+  : p.template === false
+    ? '<div class="pf-template-badge sold-out">Sold Out</div>'
+    : ''
+}
         ${media}
       </div>
       <div class="pf-fig"><span>Project ${p.num}</span><span>${p.cat}</span></div>
