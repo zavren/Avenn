@@ -1,1 +1,26 @@
-
+<!DOCTYPE html><html lang="en"><head><title>Sign in | MtaaniWeb Studio</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<script>try{var t=localStorage.getItem('studio-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/studio/assets/css/studio.css"><link rel="stylesheet" href="/studio/assets/css/poster.css"></head><body>
+<div class="login"><form id="f">
+<h1>MtaaniWeb Studio</h1>
+<label>Email<input type="email" id="e" autocomplete="username" required></label>
+<label>Password<input type="password" id="w" autocomplete="current-password" required></label>
+<button class="btn pri" type="submit">Sign in</button>
+<p class="err" id="err" role="alert"></p>
+</form></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/studio/assets/js/config.js"></script><script src="/studio/assets/js/app.js"></script>
+<script>
+var err=document.getElementById('err');
+if(location.search.indexOf('denied')>-1)err.textContent='This account does not have Studio access.';
+S.auth.onAuthStateChanged(function(u){if(u&&location.search.indexOf('denied')<0)S.isStaff().then(function(ok){if(ok)location.replace('/studio/')})});
+document.getElementById('f').onsubmit=function(ev){ev.preventDefault();err.textContent='';
+S.auth.signInWithEmailAndPassword(document.getElementById('e').value,document.getElementById('w').value)
+.then(function(){return S.isStaff()}).then(function(ok){if(ok)location.replace('/studio/');else S.auth.signOut().then(function(){err.textContent='This account does not have Studio access.'})})
+.catch(function(){err.textContent='Email or password is incorrect.'})};
+</script></body></html>
