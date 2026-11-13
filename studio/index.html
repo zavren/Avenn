@@ -1,1 +1,22 @@
-
+<!DOCTYPE html><html lang="en"><head><title>Dashboard | MtaaniWeb Studio</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<script>try{var t=localStorage.getItem('studio-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/studio/assets/css/studio.css"><link rel="stylesheet" href="/studio/assets/css/poster.css"></head><body data-page="dash">
+<div class="app"><nav id="side"></nav>
+<main><div class="page">
+<h1>Dashboard</h1><p class="sub">Enter content once, pick a template, export the graphic.</p>
+<div class="cards">
+<div class="card"><b id="nd">0</b><span>Saved designs</span></div>
+<div class="card"><b id="nt">0</b><span>Available templates</span></div>
+<div class="card"><p style="margin:0 0 10px">Start a new graphic</p><a class="btn pri" href="/studio/create/">Create design</a></div>
+</div>
+<h2 style="font-size:16px;margin:8px 0 12px">Recently created</h2>
+<div class="grid" id="recent"></div>
+</div></main></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/studio/assets/js/config.js"></script><script src="/studio/assets/js/app.js"></script> <script src="/studio/assets/js/templates.js"></script><script src="/studio/assets/js/data.js"></script><script src="/studio/assets/js/poster.js"></script>
+<script src="/studio/assets/js/dashboard.js"></script></body></html>
