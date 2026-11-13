@@ -1,1 +1,47 @@
-
+<!DOCTYPE html><html lang="en"><head><title>Create design | MtaaniWeb Studio</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<script>try{var t=localStorage.getItem('studio-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/studio/assets/css/studio.css"><link rel="stylesheet" href="/studio/assets/css/poster.css"></head><body data-page="create">
+<div class="app"><nav id="side"></nav>
+<main>
+<div class="top"><h1>Create design</h1>
+<input type="text" id="nm" placeholder="Design name" aria-label="Design name" style="width:180px">
+<div id="tpls" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+<div class="seg"><button data-k="ar" data-v="portrait">4:5</button><button data-k="ar" data-v="square">1:1</button><button data-k="ar" data-v="story">9:16</button><button data-k="ar" data-v="landscape">16:9</button></div>
+<div style="flex:1"></div>
+<div class="seg"><button data-k="fmt" data-v="PNG">PNG</button><button data-k="fmt" data-v="JPG">JPG</button></div>
+<button class="btn" id="save">Save</button><button class="btn pri" id="exp">Export</button>
+</div>
+<div class="work">
+<div id="stage"><div id="p" class="poster"></div><div id="dims"></div></div>
+<aside class="panel">
+<h3>Content</h3><div id="fields"></div>
+<h3>Image</h3>
+<div class="imgs" id="imgs"></div>
+<label>Upload a photo<input type="file" id="file" accept="image/*"></label>
+<p class="note" id="upl">Photos upload to Cloudinary at full quality.</p>
+<h3>Layout</h3><div class="lay" id="lays"></div>
+<h3>Arrange</h3>
+<label>Image position</label><div class="seg"><button data-k="flip" data-v="0">Start</button><button data-k="flip" data-v="1">End</button></div>
+<label>Image size<input type="range" data-r="ip" min="30" max="75"></label>
+<label>Headline alignment</label><div class="seg"><button data-k="align" data-v="left">Left</button><button data-k="align" data-v="center">Centre</button></div>
+<label>Description</label><div class="seg"><button data-k="dp" data-v="below">Below title</button><button data-k="dp" data-v="above">Above title</button></div>
+<label>Footer</label><div class="seg"><button data-k="fp" data-v="bottom">Bottom</button><button data-k="fp" data-v="top">Top</button><button data-k="fp" data-v="hide">Hidden</button></div>
+<label>Spacing<input type="range" data-r="sp" min="60" max="150"></label>
+<label>Text size<input type="range" data-r="scale" min="80" max="130"></label>
+<h3>Colour</h3>
+<label>Background</label><div class="sw" id="bgs"></div>
+<label>Accent</label><div class="sw" id="accs"></div>
+<h3>Show on graphic</h3><div class="shows" id="shows"></div>
+<div style="margin-top:18px;display:grid;gap:8px">
+<button class="btn" id="rst">Reset to template defaults</button>
+<div id="adm" style="display:grid;gap:8px"><button class="btn" id="tupd">Update this template with these settings</button><button class="btn" id="tnew">Save as new template variation</button></div>
+</div>
+</aside></div></main></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/studio/assets/js/config.js"></script><script src="/studio/assets/js/app.js"></script> <script src="/studio/assets/js/templates.js"></script><script src="/studio/assets/js/data.js"></script><script src="/studio/assets/js/poster.js"></script> <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script src="/studio/assets/js/create.js"></script></body></html>
