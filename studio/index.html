@@ -1,22 +1,783 @@
-<!DOCTYPE html><html lang="en"><head><title>Dashboard | MtaaniWeb Studio</title>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<title>MtaaniWeb Studio</title>
 <script>try{var t=localStorage.getItem('studio-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/studio/assets/css/studio.css"><link rel="stylesheet" href="/studio/assets/css/poster.css"></head><body data-page="dash">
-<div class="app"><nav id="side"></nav>
-<main><div class="page">
-<h1>Dashboard</h1><p class="sub">Enter content once, pick a template, export the graphic.</p>
-<div class="cards">
-<div class="card"><b id="nd">0</b><span>Saved designs</span></div>
-<div class="card"><b id="nt">0</b><span>Available templates</span></div>
-<div class="card"><p style="margin:0 0 10px">Start a new graphic</p><a class="btn pri" href="/studio/create/">Create design</a></div>
-</div>
-<h2 style="font-size:16px;margin:8px 0 12px">Recently created</h2>
-<div class="grid" id="recent"></div>
-</div></main></div>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&amp;family=Playfair+Display:wght@400;700&amp;family=DM+Serif+Display&amp;family=Cormorant+Garamond:wght@400;700&amp;family=Libre+Baskerville:wght@400;700&amp;family=Lora:wght@400;700&amp;family=Source+Serif+4:wght@400;600&amp;family=Archivo:wght@400;600;800&amp;family=Montserrat:wght@400;600;800&amp;family=Space+Grotesk:wght@400;700&amp;family=Bebas+Neue&amp;family=Inter:wght@400;500;600&amp;family=DM+Sans:wght@400;500;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F5FA;--card:#fff;--ink:#17163A;--mut:#6B6A85;--line:#E4E6EF;--stage:#E8EAF3;--on-bg:#0D0B2B;--on-fg:#fff;--side:#0D0B2B;--r:12px;--sh:0 1px 2px rgba(13,11,43,.06),0 6px 20px rgba(13,11,43,.05)}
+:root[data-theme=dark]{--bg:#0A0920;--card:#14123A;--ink:#EEEDF8;--mut:#9C9BB8;--line:#2A2860;--stage:#0F0D2E;--on-bg:#38B6FF;--on-fg:#0D0B2B;--side:#07061C;--sh:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%;margin:0;overscroll-behavior:none}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--on-bg);outline-offset:2px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* modes: boot splash, sign in, app */
+#boot,#auth,#app{display:none}
+body[data-mode=boot] #boot{display:grid}body[data-mode=auth] #auth{display:grid}body[data-mode=app] #app{display:grid}
+#boot{height:100%;place-items:center;background:var(--side);color:#fff}
+#boot b{font-size:18px;font-weight:600;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4}}
+#auth{min-height:100%;place-items:center;padding:20px}
+#lf{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;width:100%;max-width:360px;box-shadow:var(--sh)}
+#lf h1{font-size:20px;margin:0 0 4px}#lf p{margin:0 0 14px;color:var(--mut)}
+#lf .btn{width:100%;margin-top:16px;padding:10px}
+.err{color:#C0362C;font-size:13px;min-height:18px;margin:10px 0 0}
+/* shell */
+#app{height:100%;grid-template-columns:216px 1fr}
+#side{background:var(--side);color:#fff;padding:18px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+#side .logo{font-weight:600;font-size:16px;padding:2px 10px 18px}
+#side a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:#B9B8D6;text-decoration:none;transition:background .15s,color .15s}
+#side a:hover{background:rgba(255,255,255,.08)}
+#side a.on{background:#fff;color:#0D0B2B;font-weight:600}
+#side .gap{flex:1}#side small{color:#8F8EB5;padding:0 10px;overflow:hidden;text-overflow:ellipsis}
+#col{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%}
+#top{display:flex;align-items:center;gap:8px;padding:0 16px;height:56px;flex:none;background:var(--card);border-bottom:1px solid var(--line)}
+#top h1{font-size:16px;font-weight:600;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tact{display:flex;gap:8px;align-items:center}
+.ib{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer}
+.ib:hover{background:var(--bg)}
+#view{flex:1;min-height:0;overflow:auto;position:relative}
+#view.fill{overflow:hidden}
+#view.in>*{animation:in .22s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#tabs{display:none}
+/* controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 13px;cursor:pointer;text-decoration:none;color:var(--ink);font-weight:500;transition:background .15s,opacity .15s}
+.btn:hover{background:var(--bg)}
+.btn.pri{background:var(--on-bg);color:var(--on-fg);border-color:var(--on-bg)}.btn.pri:hover{opacity:.9}
+.btn[disabled]{opacity:.5;cursor:default}.btn.sm{padding:4px 10px;font-size:12px;border-radius:8px}.btn.del{color:#C0362C}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);flex:none}
+.seg button,.chip{background:none;border:0;padding:6px 11px;cursor:pointer;font-size:13px;white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on,.chip.on{background:var(--on-bg);color:var(--on-fg)}
+.chip{border:1px solid var(--line);border-radius:999px;background:var(--card)}.chip.on{border-color:var(--on-bg)}
+input[type=text],input[type=date],input[type=email],input[type=password],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);resize:vertical}
+input[type=range]{width:100%;accent-color:var(--on-bg)}input[type=file]{font-size:12px;width:100%}
+label{display:block;font-size:12px;color:var(--mut);margin:9px 0 3px}
+label>input,label>textarea,label>select{display:block;margin-top:3px}
+label.ck{display:flex;gap:6px;align-items:center;margin:0;color:var(--ink)}label.ck input{width:auto;margin:0}
+/* create view */
+.cview{display:flex;flex-direction:column;height:100%}
+.bar2{display:flex;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--card);flex:none}
+.bar2 input{width:170px;flex:none}.chips{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.work{flex:1;min-height:0;display:grid;grid-template-columns:1fr 340px}
+#stage{background:var(--stage);display:flex;align-items:center;justify-content:center;padding:16px;min-height:0;overflow:hidden;flex-direction:column;gap:8px}
+#p{box-shadow:0 14px 44px rgba(13,11,43,.28);flex:none;border-radius:2px}
+#dims{font-size:12px;color:var(--mut)}
+.panel{background:var(--card);border-left:1px solid var(--line);overflow:auto;padding:4px 16px 16px}
+.panel details{border-bottom:1px solid var(--line);padding:2px 0}
+.panel summary{cursor:pointer;font-weight:600;font-size:13px;padding:11px 0;list-style:none;display:flex;justify-content:space-between}
+.panel summary::-webkit-details-marker{display:none}.panel summary::after{content:"+";color:var(--mut)}.panel details[open] summary::after{content:"\2212"}
+.panel details>div,.panel details>label{margin-bottom:8px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lay{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.lay button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:5px;cursor:pointer;text-align:left;font-size:11px;color:var(--ink)}
+.lay button.on{border-color:var(--on-bg);box-shadow:0 0 0 2px var(--on-bg)}
+.lay svg{display:block;width:100%;height:36px;margin-bottom:3px}
+.sw{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sw button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw button.on{outline:2px solid var(--ink);outline-offset:2px}
+.sw input[type=color]{width:30px;height:30px;padding:0;border:0;background:none;cursor:pointer}
+.gonly{display:none}.panel[data-bgm=grad] .gonly{display:block}.panel[data-bgm=grad] .sonly{display:none}
+.imgs{display:flex;gap:8px;align-items:center}.imgs button{width:46px;height:46px;border-radius:10px;border:2px solid var(--line);background-size:cover;cursor:pointer}
+.imgs button.on{border-color:var(--on-bg);box-shadow:0 0 0 2px var(--on-bg)}
+.note{font-size:12px;color:var(--mut);margin:6px 0 0}
+.shows{display:flex;gap:6px 14px;flex-wrap:wrap}
+.pfoot{display:grid;gap:8px;padding-top:14px}
+/* pages */
+.page{padding:20px 24px 28px;max-width:1100px;margin:0 auto}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.card b{display:block;font-size:28px;font-weight:600;line-height:1.1}.card span{color:var(--mut);font-size:13px}
+.card.q{display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.sec{display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px}.sec h2{font-size:16px;margin:0}.sec a{color:var(--mut);font-size:13px}
+.sub{color:var(--mut);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--sh);transition:transform .15s}
+.tcard:hover{transform:translateY(-2px)}
+.tcard .mini{background:var(--stage);padding:12px;display:flex;justify-content:center;cursor:pointer}
+.tcard .bd{padding:12px}.tcard .bt{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tcard h2{font-size:14px;margin:0}.tcard p{margin:2px 0 0;color:var(--mut);font-size:12px}
+.badge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--mut);margin-left:6px;font-weight:400}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#0D0B2B;color:#fff;padding:9px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw}
+.toast.on{opacity:1}
+@media(max-width:820px){
+#app{grid-template-columns:1fr}#side{display:none}
+#view{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+#tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+#tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--mut);text-decoration:none;padding:4px 0}
+#tabs a.on{color:var(--on-bg);font-weight:600}
+#view.fill{overflow:auto}.cview{height:auto}
+.bar2{flex-wrap:wrap}.bar2 input{width:100%}
+.work{display:block}#stage{position:sticky;top:0;height:52vh;z-index:5}.panel{border-left:0;border-top:1px solid var(--line)}
+.page{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.panel[data-bgm=grad] .sw.gonly{display:flex}
+
+.poster{--u0:1;--lf:1;--u:calc(var(--u0) * var(--lf));--s:1;--sp:1;--ip:55;--bl:0;--dim:0;--hf:'Fraunces',Georgia,serif;--hw:600;--hk:1;--bff:'Inter',Arial,sans-serif;--mff:'JetBrains Mono',monospace;--pbg:#0D0B2B;--pb:#0D0B2B;--pf:#fff;--ac:#38B6FF;--lt:#0D0B2B;container-type:inline-size;position:relative;overflow:hidden;background:var(--pbg);color:var(--pf);display:flex;flex-direction:column;font-family:var(--bff)}
+.poster[data-ar=square]{--u0:.9}.poster[data-ar=story]{--u0:1.1}.poster[data-ar=landscape]{--u0:.5}
+.poster i{display:block;font-style:normal}
+.poster .ph{order:1;position:relative;overflow:hidden;flex:0 1 calc(var(--ip) * 1%);min-height:0}
+.poster .im{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(calc(var(--bl) * .2cqw));transform:scale(calc(1 + var(--bl) * .012))}
+.poster .dm{position:absolute;inset:0;background:#0D0B2B;opacity:var(--dim)}
+.poster .gr{display:none;position:absolute;inset:0;background:linear-gradient(to top,rgba(13,11,43,.94),rgba(13,11,43,.5) 45%,transparent 75%)}
+.poster[data-flip="1"] .ph{order:3}
+.poster .tx{order:2;flex:1 0 auto;display:flex;flex-direction:column;padding:calc(var(--sp) * 5cqw) calc(var(--sp) * 5cqw) calc(var(--sp) * 3cqw)}
+.poster .bar{display:none}
+.poster .ft{order:4;display:flex;justify-content:space-between;align-items:center;gap:3cqw;padding:2.8cqw 5cqw;border-top:1px solid color-mix(in srgb,currentColor 22%,transparent);font:400 calc(var(--u) * 1.8cqw) var(--mff)}
+.poster .so{display:flex;align-items:center;gap:2cqw}
+.poster .ic{display:flex;gap:1.8cqw}.poster .ic svg{width:calc(var(--u) * 3cqw);height:calc(var(--u) * 3cqw);display:block}
+.poster[data-fp=top] .ft{order:0;border-top:0;border-bottom:1px solid color-mix(in srgb,currentColor 22%,transparent)}
+.poster[data-fp=hide] .ft{display:none}
+.poster .lab{position:absolute;z-index:3;top:calc(var(--sp) * 4cqw);left:calc(var(--sp) * 5cqw);background:var(--ac);color:var(--lt);font:600 calc(var(--u) * 2cqw)/1 var(--bff);letter-spacing:.05em;text-transform:uppercase;padding:1.1cqw 2.2cqw;border-radius:.6cqw}
+.poster .lab:empty,.poster .ex:empty,.poster .tg:empty,.poster .tk:empty,.poster .me:empty,.poster .hd:empty{display:none}
+.poster .ti{order:1;font-family:var(--hf);font-weight:var(--hw);font-size:calc(var(--s) * var(--u) * var(--hk) * 8cqw);line-height:1.05;margin:0 0 2cqw;letter-spacing:-.01em}
+.poster .de{order:2;font-size:calc(var(--s) * var(--u) * 2.9cqw);line-height:1.45;opacity:.86;margin:0;max-width:44em}
+.poster[data-dp=above] .de{order:0;margin-bottom:2cqw}
+.poster .ex{order:3;font-size:calc(var(--s) * var(--u) * 2.4cqw);opacity:.7;margin:1.5cqw 0 0}
+.poster .me{order:4;display:flex;flex-wrap:wrap;gap:1cqw 2cqw;margin-top:3cqw;font:400 calc(var(--u) * 2cqw) var(--mff)}
+.poster .me i{color:var(--ac)}
+.poster .tg{order:5;margin-top:2cqw;color:var(--ac);font:400 calc(var(--u) * 1.9cqw) var(--mff);white-space:pre-wrap}
+.poster .tk{order:6;margin:3cqw 0 0;border-left:.7cqw solid var(--ac);padding-left:2cqw;font-size:calc(var(--s) * var(--u) * 2.4cqw);font-weight:500}
+.poster[data-al=center] .tx{text-align:center;align-items:center}
+.poster[data-al=center] .me{justify-content:center}
+.poster[data-al=center] .tk{border:0;padding:0}
+.poster[data-layout=split]{--lf:.62;display:grid;grid-template-columns:calc(var(--ip) * 1%) 1fr;grid-template-rows:1fr auto}
+.poster[data-ar=landscape][data-layout=split]{--lf:1.1}
+.poster[data-layout=split] .ph{grid-column:1;grid-row:1/3}
+.poster[data-layout=split] .tx{grid-column:2;grid-row:1}
+.poster[data-layout=split] .ft{grid-column:2;grid-row:2}
+.poster[data-layout=split][data-flip="1"]{grid-template-columns:1fr calc(var(--ip) * 1%)}
+.poster[data-layout=split][data-flip="1"] .ph{grid-column:2}
+.poster[data-layout=split][data-flip="1"] .tx,.poster[data-layout=split][data-flip="1"] .ft{grid-column:1}
+.poster[data-layout=split][data-fp=top]{grid-template-rows:auto 1fr}
+.poster[data-layout=split][data-fp=top] .tx{grid-row:2}.poster[data-layout=split][data-fp=top] .ft{grid-row:1}
+.poster[data-layout=overlay]{color:#fff}
+.poster[data-layout=overlay] .ph{position:absolute;inset:0}
+.poster[data-layout=overlay] .gr{display:block}
+.poster[data-layout=overlay] .tx,.poster[data-layout=overlay] .ft{position:relative}
+.poster[data-layout=overlay] .tx{margin-top:auto;flex:0 0 auto}
+.poster[data-layout=panel] .ph{position:absolute;inset:0}
+.poster[data-layout=panel] .tx{position:relative;flex:0 0 auto;margin:auto 4cqw 0;background:var(--pb);padding:calc(var(--sp) * 4.5cqw) calc(var(--sp) * 4.5cqw) calc(var(--sp) * 2cqw)}
+.poster[data-layout=panel] .ft{position:relative;margin:0 4cqw 4cqw;background:var(--pb)}
+.poster[data-layout=panel][data-fp=top] .ft{margin:4cqw 4cqw 0}
+.poster[data-layout=panel][data-fp=top] .tx,.poster[data-layout=panel][data-fp=hide] .tx{margin-bottom:4cqw}
+.poster[data-layout=panel][data-ar=landscape] .tx,.poster[data-layout=panel][data-ar=landscape] .ft{width:56cqw;margin-right:auto}
+.poster[data-layout=magazine]{padding:calc(var(--sp) * 4.5cqw)}
+.poster[data-layout=magazine] .lab{top:calc(var(--sp) * 6.5cqw);left:calc(var(--sp) * 6.5cqw)}
+.poster[data-layout=magazine] .tx{padding:calc(var(--sp) * 4cqw) 0 calc(var(--sp) * 2cqw)}
+.poster[data-layout=magazine] .bar{display:block;order:0;width:12cqw;height:.9cqw;background:var(--ac);margin-bottom:3cqw}
+.poster[data-layout=magazine][data-al=center] .bar{margin-left:auto;margin-right:auto}
+.poster[data-layout=magazine] .ti{font-size:calc(var(--s) * var(--u) * var(--hk) * 9cqw)}
+.poster[data-layout=magazine] .ft{padding-left:0;padding-right:0}
+.poster[data-layout=typed] .tx{padding-top:calc(var(--sp) * 13cqw)}
+.poster[data-layout=typed] .ti{font-size:calc(var(--s) * var(--u) * var(--hk) * 11cqw)}
+.poster[data-layout=typed] .ph{order:3;flex:0 1 calc(var(--ip) * .7%);margin:0 5cqw 4cqw}
+.poster[data-layout=typed][data-flip="1"] .ph{order:1;margin:calc(var(--sp) * 12cqw) 5cqw 0}
+.poster[data-layout=typed][data-flip="1"] .tx{padding-top:calc(var(--sp) * 4cqw)}
+.poster[data-layout=typed][data-ar=landscape] .ph{display:none}
+.poster[data-layout=typed][data-ar=landscape] .ti{font-size:calc(var(--s) * var(--u) * var(--hk) * 18cqw)}
+
+</style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="/studio/assets/js/config.js"></script><script src="/studio/assets/js/app.js"></script> <script src="/studio/assets/js/templates.js"></script><script src="/studio/assets/js/data.js"></script><script src="/studio/assets/js/poster.js"></script>
-<script src="/studio/assets/js/dashboard.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+</head>
+<body data-mode="boot">
+<div id="boot"><b>MtaaniWeb Studio</b></div>
+<div id="auth"><form id="lf"><h1>MtaaniWeb Studio</h1><p>Sign in to continue</p>
+<label>Email<input type="email" id="le" autocomplete="username" required></label>
+<label>Password<input type="password" id="lw" autocomplete="current-password" required></label>
+<button class="btn pri" type="submit">Sign in</button><p class="err" id="lerr" role="alert"></p></form></div>
+<div id="app"><aside id="side"></aside>
+<div id="col"><header id="top"><h1 id="ttl"></h1><div id="tact"></div><button class="ib" id="th" aria-label="Switch light and dark mode"></button><button class="ib" id="out" aria-label="Sign out"></button></header>
+<main id="view"></main></div><nav id="tabs"></nav></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+window.STUDIO = {
+  firebase: {
+    apiKey: "AIzaSyDDrioC1IWzavH7CQJlPQhXGQjVBG7rH7Y",
+    authDomain: "mtaaniwebhq.firebaseapp.com",
+    projectId: "mtaaniwebhq",
+    storageBucket: "mtaaniwebhq.firebasestorage.app",
+    messagingSenderId: "307779110425",
+    appId: "1:307779110425:web:cb16de61ca96f56ed7cc88",
+    measurementId: "G-9WF2TYTYL0"
+  },
+  cloudinary: { cloudName: "hztm3zo8", preset: "mtaaniweb_unsigned" }
+};
+
+// Templates are data. Built-in ones live here; saved variations and overrides live in Firestore (studioTemplates).
+var CONTENT_KEYS = ['label', 'title', 'desc', 'cat', 'loc', 'date', 'time', 'venue', 'period', 'ticket', 'tags', 'extra', 'handle'];
+var CONFIG_KEYS = ['layout', 'flip', 'ip', 'align', 'dp', 'fp', 'sp', 'scale', 'bgm', 'bgc', 'bg2', 'bga', 'acc', 'blur', 'dim', 'hf', 'bf', 'mf', 'show', 'meta', 'scene'];
+var FIELDS = { // key: [label, input type, show key]
+  label: ['Label on graphic', 'text', 'lab'], title: ['Title', 'text'], desc: ['Short description', 'area'],
+  cat: ['Category', 'text', 'cat'], loc: ['Location', 'text', 'loc'], date: ['Publication date', 'date', 'date'],
+  time: ['Time', 'text', 'time'], venue: ['Venue', 'text', 'venue'], period: ['Date or weekend period', 'text', 'period'],
+  ticket: ['Ticket information or link', 'text', 'ticket'], tags: ['Tags (comma separated)', 'text', 'tags'], extra: ['Additional information', 'text', 'extra']
+};
+var SHOWN = { lab: 'Label', cat: 'Category', loc: 'Location', date: 'Date', time: 'Time', venue: 'Venue', period: 'Period', ticket: 'Tickets', tags: 'Tags', extra: 'Extra info' };
+var LAYOUTS = [
+  ['top', 'Image top', '<rect width="60" height="26" fill="#38B6FF"/><rect x="6" y="31" width="34" height="4" fill="#888"/>'],
+  ['overlay', 'Full image', '<rect width="60" height="42" fill="#38B6FF"/><rect x="6" y="28" width="34" height="4" fill="#fff"/><rect x="6" y="34" width="22" height="3" fill="#fff" opacity=".7"/>'],
+  ['split', 'Split', '<rect width="26" height="42" fill="#38B6FF"/><rect x="31" y="10" width="24" height="4" fill="#888"/><rect x="31" y="18" width="18" height="3" fill="#888" opacity=".7"/>'],
+  ['panel', 'Compact panel', '<rect width="60" height="42" fill="#38B6FF"/><rect x="5" y="22" width="36" height="15" fill="#fff"/>'],
+  ['magazine', 'Magazine', '<rect x="4" y="4" width="52" height="22" fill="#38B6FF"/><rect x="4" y="30" width="10" height="2" fill="#9B59B6"/><rect x="4" y="34" width="34" height="4" fill="#888"/>'],
+  ['typed', 'Type-led', '<rect x="5" y="4" width="40" height="5" fill="#888"/><rect x="5" y="12" width="30" height="5" fill="#888"/><rect x="5" y="22" width="50" height="16" fill="#38B6FF"/>']
+];
+// Fonts for every text slot. w = weight used as a headline, k = size adjustment so faces look equally big
+var FONTS = [
+  { id: 'fraunces', name: 'Fraunces', fn: 'Fraunces', fb: 'Georgia,serif', w: 600, k: 1, g: 'Fraunces:wght@400;600;700' },
+  { id: 'playfair', name: 'Playfair Display', fn: 'Playfair Display', fb: 'Georgia,serif', w: 700, k: .96, g: 'Playfair+Display:wght@400;700' },
+  { id: 'dmserif', name: 'DM Serif Display', fn: 'DM Serif Display', fb: 'Georgia,serif', w: 400, k: 1, g: 'DM+Serif+Display' },
+  { id: 'cormorant', name: 'Cormorant Garamond', fn: 'Cormorant Garamond', fb: 'Georgia,serif', w: 700, k: 1.18, g: 'Cormorant+Garamond:wght@400;700' },
+  { id: 'baskerville', name: 'Libre Baskerville', fn: 'Libre Baskerville', fb: 'Georgia,serif', w: 700, k: .9, g: 'Libre+Baskerville:wght@400;700' },
+  { id: 'lora', name: 'Lora', fn: 'Lora', fb: 'Georgia,serif', w: 700, k: .98, g: 'Lora:wght@400;700' },
+  { id: 'sourceserif', name: 'Source Serif 4', fn: 'Source Serif 4', fb: 'Georgia,serif', w: 600, k: .98, g: 'Source+Serif+4:wght@400;600' },
+  { id: 'archivo', name: 'Archivo (bold, clean)', fn: 'Archivo', fb: 'Arial,sans-serif', w: 800, k: .95, g: 'Archivo:wght@400;600;800' },
+  { id: 'montserrat', name: 'Montserrat (bold, clean)', fn: 'Montserrat', fb: 'Arial,sans-serif', w: 800, k: .9, g: 'Montserrat:wght@400;600;800' },
+  { id: 'grotesk', name: 'Space Grotesk', fn: 'Space Grotesk', fb: 'Arial,sans-serif', w: 700, k: .95, g: 'Space+Grotesk:wght@400;700' },
+  { id: 'bebas', name: 'Bebas Neue (condensed)', fn: 'Bebas Neue', fb: 'Impact,sans-serif', w: 400, k: 1.3, g: 'Bebas+Neue' },
+  { id: 'inter', name: 'Inter', fn: 'Inter', fb: 'Arial,sans-serif', w: 600, k: .95, g: 'Inter:wght@400;500;600' },
+  { id: 'dmsans', name: 'DM Sans', fn: 'DM Sans', fb: 'Arial,sans-serif', w: 700, k: .95, g: 'DM+Sans:wght@400;500;700' },
+  { id: 'plexsans', name: 'IBM Plex Sans', fn: 'IBM Plex Sans', fb: 'Arial,sans-serif', w: 600, k: .95, g: 'IBM+Plex+Sans:wght@400;500;600' },
+  { id: 'jetbrains', name: 'JetBrains Mono', fn: 'JetBrains Mono', fb: 'monospace', w: 500, k: .8, g: 'JetBrains+Mono:wght@400;500' }
+];
+function hfont(id) { return FONTS.filter(function (f) { return f.id === id; })[0] || FONTS[0]; }
+var GF_URL = 'https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Playfair+Display:wght@400;700&family=DM+Serif+Display&family=Cormorant+Garamond:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;700&family=Source+Serif+4:wght@400;600&family=Archivo:wght@400;600;800&family=Montserrat:wght@400;600;800&family=Space+Grotesk:wght@400;700&family=Bebas+Neue&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap';
+var ORDER = ['discovery', 'picks', 'events', 'editorial', 'weekend', 'custom'];
+var BG_SOLID = ['#0D0B2B', '#14123A', '#2B1A4A', '#1B4F8A', '#0F2027', '#FFFFFF', '#F2F3F8', '#F7F1E8', '#E9DDF5', '#DCEFFB'];
+var BG_GRAD = [['#0D0B2B', '#2B1A4A', 160], ['#0D0B2B', '#1B4F8A', 150], ['#0D0B2B', '#9B59B6', 160], ['#9B59B6', '#38B6FF', 135], ['#0F2027', '#2C5364', 160], ['#1A1440', '#E88A6A', 160], ['#F2F3F8', '#D9C8F0', 150], ['#FFFFFF', '#BFE6FF', 150]];
+var ACC_PRESETS = ['#38B6FF', '#9B59B6', '#FFFFFF', '#0D0B2B', '#FF6B6B', '#F5B301', '#1FBF8F', '#FF4FA3', '#7BD389', '#F28C28'];
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function cfg(o) {
+  var c = { layout: 'top', flip: 0, ip: 55, align: 'left', dp: 'below', fp: 'bottom', sp: 100, scale: 100, bgm: 'solid', bgc: '#0D0B2B', bg2: '#2B1A4A', bga: 160, acc: '#38B6FF', blur: 0, dim: 0, hf: 'fraunces', bf: 'inter', mf: 'jetbrains', scene: 0,
+    show: { lab: 1, cat: 1, loc: 1, date: 1, time: 1, venue: 1, period: 1, ticket: 1, tags: 1, extra: 1, icons: 1, source: 1 } };
+  for (var k in o) c[k] = o[k]; return c;
+}
+var BUILTIN = {
+  discovery: { name: 'Mtaani Discovery', label: 'Mtaani Discovery', fields: ['label', 'title', 'desc', 'cat', 'loc', 'date', 'extra'], meta: ['cat', 'loc', 'date'],
+    config: cfg({ layout: 'top', scene: 0 }),
+    sample: { title: 'Kileleshwa Roastery', desc: 'A corner coffee bar roasting Kenyan single-origins on site, with a quiet back garden.', cat: 'Cafe', loc: 'Kileleshwa, Nairobi', date: '2026-11-13' } },
+  picks: { name: 'Mtaani Picks', label: 'Mtaani Picks', fields: ['label', 'title', 'desc', 'cat', 'loc', 'date', 'extra'], meta: ['cat', 'loc', 'date'],
+    config: cfg({ layout: 'overlay', acc: '#9B59B6', scene: 1 }),
+    sample: { title: 'Five rooftops worth the climb', desc: 'Sunset views, good food and a breeze. Our picks for the week.', cat: 'Dining', loc: 'Nairobi', date: '2026-11-13' } },
+  events: { name: 'Events', label: 'Event', fields: ['label', 'title', 'desc', 'date', 'time', 'venue', 'loc', 'cat', 'ticket', 'extra'], meta: ['date', 'time', 'venue', 'loc', 'cat'],
+    config: cfg({ layout: 'split', bgc: '#FFFFFF', hf: 'archivo', scene: 2 }),
+    sample: { title: 'Nairobi Jazz Night', desc: 'Live sets from local trios on the lawn, with food trucks until late.', date: '2026-11-21', time: '7:00 PM', venue: 'The Alchemist Lawn', loc: 'Westlands, Nairobi', cat: 'Music', ticket: 'Tickets from KES 1,500 at mtaaniweb.co.ke/events' } },
+  editorial: { name: 'Editorial', label: 'Guide', fields: ['label', 'title', 'desc', 'cat', 'date', 'tags', 'extra'], meta: ['cat', 'date'],
+    config: cfg({ layout: 'magazine', bgc: '#FFFFFF', acc: '#9B59B6', hf: 'playfair', scene: 0 }),
+    sample: { title: 'A slow weekend guide to Lamu', desc: 'Where to stay, what to eat and how to get around the island without a car.', cat: 'Travel', date: '2026-11-13', tags: 'lamu, coast, weekend' } },
+  weekend: { name: 'Weekend Preview', label: 'Weekend Preview', fields: ['label', 'title', 'desc', 'period', 'cat', 'loc', 'extra'], meta: ['period', 'cat', 'loc'],
+    config: cfg({ layout: 'panel', hf: 'montserrat', scene: 1 }),
+    sample: { title: 'What to do this weekend', desc: 'Markets, live music and a rooftop film night. Here is what is on.', period: 'Sat 14 to Sun 15 Nov', cat: 'Weekend', loc: 'Nairobi' } },
+  custom: { name: 'Custom', label: 'Feature', fields: ['label', 'title', 'desc', 'cat', 'loc', 'date', 'time', 'venue', 'period', 'ticket', 'tags', 'extra'], meta: ['cat', 'loc', 'date', 'time', 'venue', 'period'],
+    config: cfg({ layout: 'typed', hf: 'archivo', scene: 2 }),
+    sample: { title: 'Your headline goes here', desc: 'Use Custom for anything that is not covered by the other templates. Choose your own label.', cat: 'General', loc: 'Nairobi', date: '2026-11-13' } }
+};
+ORDER.forEach(function (id) { var t = BUILTIN[id]; t.id = id; t.kind = id; t.builtin = true; t.enabled = true; });
+var PAL = [['#F2B880', '#9B59B6', '#0D0B2B', '#FFD9A0'], ['#38B6FF', '#1B4F8A', '#0D0B2B', '#FFFFFF'], ['#E88A6A', '#6A3A7A', '#1A1440', '#FFE2B8']];
+// Placeholder art shown until a real photo is uploaded
+function scene(i) {
+  var c = PAL[i % 3];
+  var b = [[40, 560, 90, 440], [150, 600, 70, 400], [240, 520, 110, 480], [370, 580, 80, 420], [470, 540, 100, 460], [590, 610, 90, 390], [690, 570, 110, 430]]
+    .map(function (r) { return "<rect x='" + r[0] + "' y='" + r[1] + "' width='" + r[2] + "' height='" + r[3] + "' fill='" + c[2] + "'/>"; }).join('');
+  var s = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000' preserveAspectRatio='xMidYMid slice'><rect width='800' height='1000' fill='" + c[0] + "'/><circle cx='560' cy='330' r='130' fill='" + c[3] + "'/><path d='M0 600 Q200 470 420 580 T800 540 V1000 H0Z' fill='" + c[1] + "'/>" + b + "</svg>";
+  return 'url("data:image/svg+xml,' + encodeURIComponent(s) + '")';
+}
+// A full editor state from a template. full = include sample content.
+function stateFor(t, full) {
+  var s = { tpl: t.id, kind: t.kind || t.id, name: '', img: null, imgId: null, ar: 'portrait', fmt: 'PNG' };
+  CONTENT_KEYS.forEach(function (k) { s[k] = ''; });
+  Object.assign(s, cfg({}), clone(t.config), { meta: t.meta.slice(), label: t.label });
+  s.show = Object.assign(cfg({}).show, s.show);
+  if (full !== false) Object.assign(s, clone(t.sample));
+  return s;
+}
+
+// Firestore and Cloudinary access, with an in-memory cache so views open instantly
+var D = {
+  T: {}, c: { settings: {}, admin: false, designs: [] },
+  col: function (n) { return S.db.collection(n); },
+  ts: function () { return firebase.firestore.FieldValue.serverTimestamp(); },
+  templates: function () {
+    var map = clone(BUILTIN);
+    return D.col('studioTemplates').get().then(function (q) {
+      q.forEach(function (d) {
+        var v = d.data(), id = d.id;
+        if (BUILTIN[id]) map[id] = Object.assign(clone(BUILTIN[id]), v, { id: id, builtin: true });
+        else map[id] = Object.assign({ fields: BUILTIN.custom.fields, meta: BUILTIN.custom.meta, sample: BUILTIN.custom.sample, enabled: true }, v, { id: id });
+      });
+    }).catch(function () {}).then(function () { D.T = map; return map; });
+  },
+  ordered: function (map) {
+    map = map || D.T;
+    var ids = Object.keys(map), o = ORDER.filter(function (i) { return map[i]; });
+    return o.concat(ids.filter(function (i) { return ORDER.indexOf(i) < 0; }).sort(function (a, b) { return (map[a].name || '').localeCompare(map[b].name || ''); })).map(function (i) { return map[i]; });
+  },
+  settings: function () { return D.col('studioSettings').doc('app').get().then(function (d) { return d.exists ? d.data() : {}; }).catch(function () { return {}; }); },
+  setDefault: function (id) { return D.col('studioSettings').doc('app').set({ defaultTemplate: id, updatedAt: D.ts() }, { merge: true }); },
+  saveTemplate: function (id, data) { data.updatedAt = D.ts(); return D.col('studioTemplates').doc(id).set(data, { merge: true }); },
+  addTemplate: function (data) { data.createdAt = D.ts(); data.updatedAt = D.ts(); return D.col('studioTemplates').add(data).then(function (r) { return r.id; }); },
+  delTemplate: function (id) { return D.col('studioTemplates').doc(id).delete(); },
+  designs: function (n) {
+    return D.col('studioDesigns').orderBy('updatedAt', 'desc').limit(n || 200).get().then(function (q) { return q.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); });
+  },
+  design: function (id) { return D.col('studioDesigns').doc(id).get().then(function (d) { if (!d.exists) throw new Error('Design not found'); return Object.assign({ id: d.id }, d.data()); }); },
+  // Loads everything the app needs; used at sign-in and for quiet background refreshes
+  refresh: function () {
+    return Promise.all([D.templates(), D.settings(), S.isAdmin(), D.designs().catch(function () { return D.c.designs; })]).then(function (r) {
+      D.c = { settings: r[1], admin: r[2], designs: r[3], at: Date.now() };
+    });
+  },
+  reset: function () { D.T = {}; D.c = { settings: {}, admin: false, designs: [] }; },
+  pack: function (s) {
+    var content = {}, config = {};
+    CONTENT_KEYS.forEach(function (k) { content[k] = s[k] || ''; });
+    CONFIG_KEYS.forEach(function (k) { config[k] = clone(s[k] === undefined ? null : s[k]); });
+    return { name: s.name || s.title || 'Untitled', type: s.kind || s.tpl, templateId: s.tpl, content: content, config: config,
+      imageUrl: s.img || '', imageId: s.imgId || '', exportSize: s.ar, format: s.fmt };
+  },
+  saveDesign: function (id, p) {
+    p.updatedAt = D.ts();
+    var w;
+    if (id) w = D.col('studioDesigns').doc(id).set(p, { merge: true }).then(function () { return id; });
+    else { p.createdAt = D.ts(); p.createdBy = S.auth.currentUser.uid; w = D.col('studioDesigns').add(p).then(function (r) { return r.id; }); }
+    return w.then(function (rid) { return D.designs().then(function (l) { D.c.designs = l; return rid; }, function () { return rid; }); });
+  },
+  delDesign: function (id) { return D.col('studioDesigns').doc(id).delete().then(function () { D.c.designs = D.c.designs.filter(function (d) { return d.id !== id; }); }); },
+  toState: function (d) {
+    var t = D.T[d.templateId] || D.T.custom || BUILTIN.custom, s = stateFor(t, false);
+    var c = clone(d.config || {}); if (c.show) c.show = Object.assign(s.show, c.show);
+    Object.assign(s, d.content || {}, c, { id: d.id, name: d.name, tpl: d.templateId, kind: d.type || t.kind, img: d.imageUrl || null, imgId: d.imageId || null, ar: d.exportSize || 'portrait', fmt: d.format || 'PNG', dirty: 1 });
+    return s;
+  },
+  // Direct browser upload with the unsigned preset; the reference is also kept in studioMedia
+  upload: function (file) {
+    var c = STUDIO.cloudinary, fd = new FormData(); fd.append('file', file); fd.append('upload_preset', c.preset);
+    return fetch('https://api.cloudinary.com/v1_1/' + c.cloudName + '/image/upload', { method: 'POST', body: fd }).then(function (r) {
+      return r.json().then(function (j) { if (!r.ok) throw new Error((j.error && j.error.message) || 'Upload failed'); return j; });
+    }).then(function (j) {
+      var m = { url: j.secure_url, publicId: j.public_id, width: j.width, height: j.height, bytes: j.bytes };
+      D.col('studioMedia').add(Object.assign({ createdAt: D.ts(), by: S.auth.currentUser.uid }, m)).catch(function () {});
+      return m;
+    });
+  }
+};
+
+(function () {
+  var R = { portrait: [1080, 1350], square: [1080, 1080], story: [1080, 1920], landscape: [1200, 675] };
+  var NAMES = { portrait: 'Instagram portrait', square: 'Square', story: 'Story', landscape: 'Landscape' };
+  var ICONS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>' +
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3c-2.8 0-4.5 1.8-4.5 4.5V11H7v4h2.5v6h4v-6H16l.5-4h-3V8.7c0-.5.2-.7.7-.7z"/></svg>' +
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.2 8.2L23 22h-6.5l-5.1-6.7L5.6 22H2.5l7.7-8.8L2 2h6.7l4.6 6.1L18.9 2zm-1.1 18h1.8L7.3 3.9H5.4L17.8 20z"/></svg>' +
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.4 1.7 3.9 4 4.1v3.1c-1.5 0-2.9-.5-4-1.3v6.2c0 3.2-2.4 5.4-5.4 5.4S5.7 18.3 5.7 15.2s2.6-5.5 5.9-5.2v3.2c-1.5-.3-2.7.7-2.7 2 0 1.2.9 2.1 2.1 2.1 1.4 0 2.2-.9 2.2-2.4V3h3.3z"/></svg>';
+  var HTML = '<div class="ph"><i class="im"></i><i class="gr"></i><i class="dm"></i></div><span class="lab"></span><div class="tx"><i class="bar"></i><h2 class="ti"></h2><p class="de"></p><p class="ex"></p><div class="me"></div><div class="tg"></div><p class="tk"></p></div>' +
+    '<div class="ft"><div class="so"><span class="ic">' + ICONS + '</span><span class="hd"></span></div><span class="sr">Source: mtaaniweb.co.ke</span></div>';
+  function fmt(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
+  function lum(h) { var n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; }
+  function draw(el, s) {
+    if (!el.firstChild) el.innerHTML = HTML;
+    var d = el.dataset;
+    d.layout = (s.ar === 'landscape' && (s.layout === 'top' || s.layout === 'magazine')) ? 'split' : s.layout;
+    d.ar = s.ar; d.al = s.align; d.dp = s.dp; d.fp = s.fp; d.flip = s.flip;
+    var st = el.style, grad = s.bgm === 'grad', bg = s.bgc || '#0D0B2B', ac = s.acc || '#38B6FF', hf = hfont(s.hf), bf = hfont(s.bf || 'inter'), mf = hfont(s.mf || 'jetbrains');
+    var l = grad ? (lum(bg) + lum(s.bg2 || bg)) / 2 : lum(bg);
+    st.setProperty('--pbg', grad ? 'linear-gradient(' + (s.bga || 160) + 'deg,' + bg + ',' + s.bg2 + ')' : bg);
+    st.setProperty('--pb', bg); st.setProperty('--pf', l > 0.55 ? '#0D0B2B' : '#FFFFFF');
+    st.setProperty('--ac', ac); st.setProperty('--lt', lum(ac) > 0.6 ? '#0D0B2B' : '#FFFFFF');
+    st.setProperty('--s', s.scale / 100); st.setProperty('--sp', s.sp / 100); st.setProperty('--ip', s.ip);
+    st.setProperty('--bl', s.blur || 0); st.setProperty('--dim', (s.dim || 0) / 100);
+    st.setProperty('--hf', "'" + hf.fn + "'," + hf.fb); st.setProperty('--hw', hf.w); st.setProperty('--bff', "'" + bf.fn + "'," + bf.fb); st.setProperty('--mff', "'" + mf.fn + "'," + mf.fb); st.setProperty('--hk', hf.k);
+    function q(c) { return el.querySelector(c); }
+    var sh = s.show || {};
+    q('.lab').textContent = sh.lab ? s.label : ''; q('.ti').textContent = s.title; q('.de').textContent = s.desc;
+    q('.ex').textContent = sh.extra ? s.extra : ''; q('.tk').textContent = sh.ticket ? s.ticket : '';
+    var me = q('.me'); me.innerHTML = '';
+    (s.meta || []).forEach(function (k) {
+      var v = k === 'date' ? fmt(s.date) : s[k];
+      if (sh[k] && v) {
+        if (me.firstChild) { var i = document.createElement('i'); i.textContent = '/'; me.appendChild(i); }
+        var n = document.createElement('span'); n.textContent = v; me.appendChild(n);
+      }
+    });
+    q('.tg').textContent = sh.tags ? (s.tags || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean).map(function (t) { return '#' + t.replace(/\s+/g, ''); }).join('  ') : '';
+    q('.im').style.backgroundImage = s.img ? 'url("' + s.img + '")' : scene(s.scene || 0);
+    q('.ic').style.display = sh.icons ? '' : 'none';
+    q('.hd').textContent = s.handle || '';
+    q('.so').style.display = (sh.icons || s.handle) ? '' : 'none';
+    q('.sr').style.display = sh.source ? '' : 'none';
+  }
+  function fit(stage, el, ar) {
+    var r = R[ar], k = Math.min((stage.clientWidth - 32) / r[0], (stage.clientHeight - 56) / r[1]);
+    if (k > 0) { el.style.width = r[0] * k + 'px'; el.style.height = r[1] * k + 'px'; }
+  }
+  function mini(host, s, w) {
+    var r = R[s.ar], el = document.createElement('div'); el.className = 'poster';
+    el.style.width = w + 'px'; el.style.height = Math.round(w * r[1] / r[0]) + 'px';
+    host.innerHTML = ''; host.appendChild(el); draw(el, s);
+  }
+  function toData(url) {
+    return fetch(url, { mode: 'cors' }).then(function (r) { if (!r.ok) throw new Error('Image could not be loaded'); return r.blob(); }).then(function (b) {
+      return new Promise(function (res, rej) { var f = new FileReader(); f.onload = function () { res(f.result); }; f.onerror = rej; f.readAsDataURL(b); });
+    });
+  }
+  // Embed only the fonts this design uses (latin subsets) so the export never depends on the network
+  var cssP, dataCache = {};
+  function fontCss(fams) {
+    if (!cssP) cssP = fetch(GF_URL).then(function (r) { return r.text(); });
+    return cssP.then(function (css) {
+      var blocks = css.split('/* ').slice(1).filter(function (b) {
+        return /^latin(-ext)? \*\//.test(b) && fams.some(function (f) { return b.indexOf("font-family: '" + f + "'") > -1; });
+      });
+      return Promise.all(blocks.map(function (b) {
+        var m = b.match(/url\((https:[^)]+)\)/); if (!m) return '';
+        var p = dataCache[m[1]] || (dataCache[m[1]] = toData(m[1]));
+        return p.then(function (u) { return '/* ' + b.replace(m[1], u); });
+      })).then(function (a) { return a.join('\n'); });
+    }).catch(function () { cssP = null; return undefined; });
+  }
+  // Renders an exact-size copy off screen, so no controls or borders can appear. Resolves to a data URL.
+  function exportImage(s, format) {
+    var r = R[s.ar], w = r[0], h = r[1], host = document.createElement('div'), el = document.createElement('div'), hf = hfont(s.hf), bf = hfont(s.bf || 'inter'), mf = hfont(s.mf || 'jetbrains');
+    host.style.cssText = 'position:fixed;left:-30000px;top:0;width:' + w + 'px;height:' + h + 'px;pointer-events:none';
+    el.className = 'poster'; el.style.width = w + 'px'; el.style.height = h + 'px'; host.appendChild(el); document.body.appendChild(host);
+    var s2 = Object.assign({}, s);
+    return Promise.all([s.img ? toData(s.img).then(function (u) { s2.img = u; }) : 0, fontCss([hf.fn, bf.fn, mf.fn]), document.fonts.ready]).then(function (res) {
+      draw(el, s2);
+      var specs = [hf.w + ' 40px "' + hf.fn + '"', '400 20px "' + bf.fn + '"', '600 20px "' + bf.fn + '"', '400 20px "' + mf.fn + '"'];
+      return Promise.all(specs.map(function (f) { return document.fonts.load(f); })).then(function () {
+        return new Promise(function (ok) { requestAnimationFrame(function () { requestAnimationFrame(ok); }); });
+      }).then(function () {
+        var o = { width: w, height: h, pixelRatio: 1, cacheBust: false, backgroundColor: s.bgc || '#0D0B2B' };
+        if (res[1]) o.fontEmbedCSS = res[1];
+        var go = function () { return format === 'JPG' ? htmlToImage.toJpeg(el, Object.assign({ quality: 0.95 }, o)) : htmlToImage.toPng(el, o); };
+        return go().catch(function () {}).then(go); // first pass warms up image decoding in some browsers
+      });
+    }).then(function (u) { host.remove(); return u; }, function (e) { host.remove(); throw e; });
+  }
+  function download(url, s, format) {
+    var a = document.createElement('a'), r = R[s.ar], n = (s.name || s.title || 'design').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'design';
+    a.href = url; a.download = n + '-' + r[0] + 'x' + r[1] + '.' + (format === 'JPG' ? 'jpg' : 'png'); document.body.appendChild(a); a.click(); a.remove();
+  }
+  window.Poster = { R: R, NAMES: NAMES, draw: draw, fit: fit, mini: mini, exportImage: exportImage, download: download };
+})();
+
+// App core: Firebase, sign-in, routing. The shell (sidebar and topbar) stays; only the view changes.
+var S = (function () {
+  firebase.initializeApp(STUDIO.firebase);
+  var auth = firebase.auth(), db = firebase.firestore(), adminP = null;
+  return {
+    auth: auth, db: db, user: null, denied: false,
+    // Staff check: the live rules let only staff read /meta
+    isStaff: function () { return db.collection('meta').doc('studio-check').get().then(function () { return true; }, function () { return false; }); },
+    // Admin check: the live rules let only admins list /revenue
+    isAdmin: function () { return db.collection('revenue').limit(1).get().then(function () { return true; }, function () { return false; }); },
+    toast: function (m) { var t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(S.tt); S.tt = setTimeout(function () { t.classList.remove('on'); }, 2800); }
+  };
+})();
+var V = {}; // views: { title, fill, mount(root, query) -> cleanup }
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  var I = function (p) { return '<svg class="i" viewBox="0 0 24 24">' + p + '</svg>'; };
+  var ICON = {
+    dash: I('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
+    create: I('<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>'),
+    tpl: I('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>'),
+    designs: I('<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>'),
+    sun: I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>'),
+    moon: I('<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'),
+    out: I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>')
+  };
+  var NAV = [['dash', 'Dashboard', '/studio/'], ['create', 'Create design', '/studio/create/'], ['tpl', 'Templates', '/studio/templates/'], ['designs', 'Saved designs', '/studio/designs/']];
+  var ROUTE = { '/studio/': 'dash', '/studio/create/': 'create', '/studio/templates/': 'tpl', '/studio/designs/': 'designs', '/studio/login/': 'login' };
+  var cur = null, curKey = null;
+
+  $('side').innerHTML = '<div class="logo">MtaaniWeb Studio</div>' + NAV.map(function (n) { return '<a href="' + n[2] + '" data-nav="' + n[0] + '">' + ICON[n[0]] + n[1] + '</a>'; }).join('') + '<div class="gap"></div><small id="who"></small>';
+  $('tabs').innerHTML = NAV.map(function (n) { return '<a href="' + n[2] + '" data-nav="' + n[0] + '">' + ICON[n[0]] + n[1].split(' ')[0] + '</a>'; }).join('');
+  function theme() { return document.documentElement.dataset.theme || 'light'; }
+  function paintTheme() { $('th').innerHTML = theme() === 'dark' ? ICON.sun : ICON.moon; $('th').title = theme() === 'dark' ? 'Light mode' : 'Dark mode'; }
+  $('out').innerHTML = ICON.out; $('out').title = 'Sign out'; paintTheme();
+  $('th').onclick = function () { var t = theme() === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('studio-theme', t); } catch (e) {} paintTheme(); };
+  $('out').onclick = function () { S.auth.signOut(); };
+
+  function mode(m) { document.body.dataset.mode = m; }
+  function keyFor(path) { if (path.slice(-1) !== '/') path += '/'; return ROUTE[path] || 'dash'; }
+  function nav(url, replace) {
+    var u = new URL(url, location.href);
+    history[replace ? 'replaceState' : 'pushState'](null, '', u.pathname + u.search);
+    render();
+  }
+  function render() {
+    var key = keyFor(location.pathname);
+    if (!S.user) { mode('auth'); return; }
+    if (key === 'login') { nav('/studio/', true); return; }
+    if (cur) { try { cur(); } catch (e) {} cur = null; }
+    var v = V[key], view = $('view');
+    curKey = key; view.innerHTML = ''; view.className = v.fill ? 'fill' : '';
+    $('ttl').textContent = v.title; $('tact').innerHTML = ''; view.scrollTop = 0;
+    document.querySelectorAll('[data-nav]').forEach(function (a) { a.classList.toggle('on', a.dataset.nav === key); });
+    document.title = v.title + ' | MtaaniWeb Studio';
+    cur = v.mount(view, new URLSearchParams(location.search)) || null;
+    void view.offsetWidth; view.classList.add('in');
+  }
+  // In-app links never reload the page
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="/studio/"]');
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || a.target) return;
+    e.preventDefault(); nav(a.getAttribute('href'));
+  });
+  window.addEventListener('popstate', render);
+  window.go = nav;
+
+  // Sign-in form
+  $('lf').onsubmit = function (ev) {
+    ev.preventDefault(); var er = $('lerr'); er.textContent = ''; S.denied = false;
+    S.auth.signInWithEmailAndPassword($('le').value, $('lw').value).catch(function () { er.textContent = 'Email or password is incorrect.'; });
+  };
+  S.auth.onAuthStateChanged(function (u) {
+    if (!u) {
+      S.user = null; D.reset(); if (cur) { try { cur(); } catch (e) {} cur = null; }
+      $('lerr').textContent = S.denied ? 'This account does not have Studio access.' : '';
+      history.replaceState(null, '', '/studio/login/'); mode('auth'); return;
+    }
+    S.isStaff().then(function (ok) {
+      if (!ok) { S.denied = true; S.auth.signOut(); return; }
+      return D.refresh().then(function () {
+        S.user = u; $('who').textContent = u.email; mode('app');
+        if (keyFor(location.pathname) === 'login') history.replaceState(null, '', '/studio/');
+        render();
+      });
+    });
+  });
+})();
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function tname(id, fb) { return D.T[id] ? D.T[id].name : (fb || 'Template'); }
+function dateOf(d) { return d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate().toLocaleDateString('en-GB') : ''; }
+// Show cached data now, then refresh quietly and repaint if the view is still open
+function live(paint) { var alive = true; paint(); D.refresh().then(function () { if (alive) paint(); }).catch(function () {}); return function () { alive = false; }; }
+function actBtn(bt, txt, fn, cls) { var b = document.createElement('button'); b.className = 'btn sm ' + (cls || ''); b.textContent = txt; b.onclick = function () { fn(b); }; bt.appendChild(b); }
+
+V.dash = { title: 'Dashboard', mount: function (root) {
+  root.innerHTML = '<div class="page"><div class="cards2"><div class="card"><b id="nd">0</b><span>Saved designs</span></div><div class="card"><b id="nt">0</b><span>Available templates</span></div><div class="card"><b id="nw">0</b><span>Made this week</span></div><div class="card q"><span>Start a new graphic</span><a class="btn pri" href="/studio/create/">Create design</a></div></div><div class="sec"><h2>Recently created</h2><a href="/studio/designs/">View all</a></div><div class="grid" id="recent"></div></div>';
+  return live(function () {
+    var ds = D.c.designs, wk = Date.now() - 7 * 864e5;
+    root.querySelector('#nd').textContent = ds.length;
+    root.querySelector('#nt').textContent = D.ordered().filter(function (t) { return t.enabled !== false; }).length;
+    root.querySelector('#nw').textContent = ds.filter(function (d) { return d.updatedAt && d.updatedAt.toDate && d.updatedAt.toDate().getTime() > wk; }).length;
+    var host = root.querySelector('#recent'); host.innerHTML = '';
+    if (!ds.length) { host.innerHTML = '<div class="card" style="grid-column:1/-1">No designs yet. Choose a template and enter your content to make the first one.</div>'; return; }
+    ds.slice(0, 6).forEach(function (d) {
+      var c = document.createElement('div'); c.className = 'tcard';
+      c.innerHTML = '<div class="mini"></div><div class="bd"><h2></h2><p></p></div>';
+      c.querySelector('h2').textContent = d.name; c.querySelector('p').textContent = tname(d.templateId, d.type) + ' · ' + dateOf(d);
+      Poster.mini(c.querySelector('.mini'), D.toState(d), 216);
+      c.querySelector('.mini').onclick = function () { go('/studio/create/?id=' + d.id); };
+      host.appendChild(c);
+    });
+  });
+} };
+
+V.tpl = { title: 'Templates', mount: function (root) {
+  root.innerHTML = '<div class="page"><p class="sub">Choose a default, duplicate a template to make a variation, or turn one off. To change how a template looks, open it in Create design and use Update template.</p><p class="note" id="note"></p><div class="grid" id="grid"></div></div>';
+  function again() { D.refresh().then(paint); }
+  function fail() { S.toast('Could not save the change. Only admins can change templates.'); }
+  function paint() {
+    var ADMIN = D.c.admin, SET = D.c.settings;
+    root.querySelector('#note').textContent = ADMIN ? '' : 'You can use templates. Only admins can change them.';
+    var host = root.querySelector('#grid'); host.innerHTML = '';
+    D.ordered().forEach(function (t) {
+      var isDef = (SET.defaultTemplate || 'discovery') === t.id, c = document.createElement('div'); c.className = 'tcard';
+      c.innerHTML = '<div class="mini"></div><div class="bd"><h2></h2><p></p><div class="bt"></div></div>';
+      var h = c.querySelector('h2'); h.textContent = t.name;
+      [isDef ? 'Default' : '', t.enabled === false ? 'Disabled' : '', t.builtin ? 'Built in' : 'Variation'].filter(Boolean).forEach(function (b) { var s = document.createElement('span'); s.className = 'badge'; s.textContent = b; h.appendChild(s); });
+      c.querySelector('p').textContent = LAYOUTS.filter(function (l) { return l[0] === t.config.layout; })[0][1] + ' layout · ' + hfont(t.config.hf).name;
+      Poster.mini(c.querySelector('.mini'), stateFor(t, true), 216);
+      c.querySelector('.mini').onclick = function () { go('/studio/create/?tpl=' + t.id); };
+      var bt = c.querySelector('.bt');
+      actBtn(bt, 'Use', function () { go('/studio/create/?tpl=' + t.id); }, 'pri');
+      if (ADMIN) {
+        if (!isDef && t.enabled !== false) actBtn(bt, 'Make default', function () { D.setDefault(t.id).then(again, fail); });
+        actBtn(bt, 'Duplicate', function () {
+          var n = prompt('Name for the copy', t.name + ' copy'); if (!n) return;
+          var d = clone(t); delete d.id; delete d.builtin; d.name = n; d.enabled = true; D.addTemplate(d).then(again, fail);
+        });
+        actBtn(bt, 'Rename', function () { var n = prompt('New name', t.name); if (n) D.saveTemplate(t.id, { name: n }).then(again, fail); });
+        actBtn(bt, t.enabled === false ? 'Enable' : 'Disable', function () { D.saveTemplate(t.id, { enabled: t.enabled === false }).then(again, fail); });
+        if (!t.builtin) actBtn(bt, 'Delete', function () { if (confirm('Delete this template variation? Saved designs keep their own settings.')) D.delTemplate(t.id).then(again, fail); }, 'del');
+      }
+      host.appendChild(c);
+    });
+  }
+  return live(paint);
+} };
+
+V.designs = { title: 'Saved designs', mount: function (root) {
+  root.innerHTML = '<div class="page"><p class="sub">Edit, change the template, download again, duplicate or delete.</p><div style="max-width:320px;margin-bottom:14px"><input type="text" id="qs" placeholder="Search designs" aria-label="Search designs"></div><div class="grid" id="grid"></div></div>';
+  var qs = root.querySelector('#qs');
+  function again() { D.refresh().then(paint); }
+  function paint() {
+    var host = root.querySelector('#grid'), term = qs.value.toLowerCase(); host.innerHTML = '';
+    var ds = D.c.designs.filter(function (d) { return !term || (d.name || '').toLowerCase().indexOf(term) > -1; });
+    if (!ds.length) { host.innerHTML = '<div class="card" style="grid-column:1/-1">' + (term ? 'No designs match your search.' : 'No saved designs yet.') + '</div>'; return; }
+    ds.forEach(function (d) {
+      var c = document.createElement('div'); c.className = 'tcard';
+      c.innerHTML = '<div class="mini"></div><div class="bd"><h2></h2><p></p><div class="bt"></div></div>';
+      c.querySelector('h2').textContent = d.name;
+      c.querySelector('p').textContent = tname(d.templateId, d.type) + ' · ' + Poster.NAMES[d.exportSize || 'portrait'] + ' · ' + dateOf(d);
+      Poster.mini(c.querySelector('.mini'), D.toState(d), 216);
+      c.querySelector('.mini').onclick = function () { go('/studio/create/?id=' + d.id); };
+      var bt = c.querySelector('.bt');
+      function dl(f) { return function (b) { var o = b.textContent; b.disabled = true; b.textContent = '...'; var s = D.toState(d); Poster.exportImage(s, f).then(function (u) { Poster.download(u, s, f); }).catch(function (er) { S.toast('Export failed: ' + er.message); }).then(function () { b.disabled = false; b.textContent = o; }); }; }
+      actBtn(bt, 'Edit', function () { go('/studio/create/?id=' + d.id); }, 'pri');
+      actBtn(bt, 'PNG', dl('PNG')); actBtn(bt, 'JPG', dl('JPG'));
+      actBtn(bt, 'Duplicate', function () { var s = D.toState(d); s.name = d.name + ' copy'; D.saveDesign(null, D.pack(s)).then(function () { S.toast('Duplicated'); paint(); }, function (e) { S.toast(e.message); }); });
+      actBtn(bt, 'Delete', function () { if (confirm('Delete "' + d.name + '"?')) D.delDesign(d.id).then(paint, function (e) { S.toast(e.message); }); }, 'del');
+      host.appendChild(c);
+    });
+  }
+  qs.addEventListener('input', paint);
+  return live(paint);
+} };
+
+V.create = { title: 'Create design', fill: true, mount: function (root, q) {
+  var $ = function (i) { return root.querySelector('#' + i); }, gid = function (i) { return document.getElementById(i); };
+  var st, TPLS = D.T, ADMIN = D.c.admin, SET = D.c.settings, uploading = false, ro = null, dead = false;
+  function sw(list, key) { return list.map(function (c) { return '<button data-cv="' + key + '|' + c + '" style="background:' + c + '" aria-label="' + c + '"></button>'; }).join(''); }
+  root.innerHTML =
+    '<div class="cview"><div class="bar2"><input type="text" id="nm" placeholder="Design name" aria-label="Design name"><div class="chips" id="tpls"></div>' +
+    '<div class="seg"><button data-k="ar" data-v="portrait">4:5</button><button data-k="ar" data-v="square">1:1</button><button data-k="ar" data-v="story">9:16</button><button data-k="ar" data-v="landscape">16:9</button></div>' +
+    '<div class="seg"><button data-k="fmt" data-v="PNG">PNG</button><button data-k="fmt" data-v="JPG">JPG</button></div></div>' +
+    '<div class="work"><div id="stage"><div id="p" class="poster"></div><div id="dims"></div></div><aside class="panel" id="panel">' +
+    '<details open><summary>Content</summary><div id="fields"></div></details>' +
+    '<details open><summary>Image</summary><div><div class="imgs" id="imgs"></div><label>Upload a photo<input type="file" id="file" accept="image/*"></label><p class="note" id="upl">Photos upload to Cloudinary at full quality.</p>' +
+    '<label>Blur<input type="range" data-r="blur" min="0" max="20"></label><label>Darken<input type="range" data-r="dim" min="0" max="70"></label></div></details>' +
+    '<details open><summary>Layout</summary><div class="lay" id="lays"></div></details>' +
+    '<details><summary>Typography</summary><div>' +
+    ['hf|Heading font', 'bf|Body font (description, label)', 'mf|Details font (metadata, tags, footer)'].map(function (x) { var p = x.split('|'); return '<label>' + p[1] + '<select data-font="' + p[0] + '">' + FONTS.map(function (f) { return '<option value="' + f.id + '" style="font-family:\'' + f.fn + '\'">' + f.name + '</option>'; }).join('') + '</select></label>'; }).join('') +
+    '<button class="btn sm" id="fall" style="margin-top:10px">Use the heading font for everything</button>' +
+    '<label>Text size<input type="range" data-r="scale" min="80" max="130"></label></div></details>' +
+    '<details><summary>Arrange</summary><div><label>Image position</label><div class="seg"><button data-k="flip" data-v="0">Start</button><button data-k="flip" data-v="1">End</button></div>' +
+    '<label>Image size<input type="range" data-r="ip" min="30" max="75"></label>' +
+    '<label>Headline alignment</label><div class="seg"><button data-k="align" data-v="left">Left</button><button data-k="align" data-v="center">Centre</button></div>' +
+    '<label>Description</label><div class="seg"><button data-k="dp" data-v="below">Below title</button><button data-k="dp" data-v="above">Above title</button></div>' +
+    '<label>Spacing<input type="range" data-r="sp" min="60" max="150"></label></div></details>' +
+    '<details><summary>Colour</summary><div><label>Background</label><div class="seg"><button data-k="bgm" data-v="solid">Solid</button><button data-k="bgm" data-v="grad">Gradient</button></div>' +
+    '<div class="sw sonly" style="margin-top:8px">' + sw(BG_SOLID, 'bgc') + '<input type="color" data-c="bgc" aria-label="Custom background"></div>' +
+    '<div class="sw gonly" style="margin-top:8px">' + BG_GRAD.map(function (g, i) { return '<button data-g="' + i + '" style="background:linear-gradient(' + g[2] + 'deg,' + g[0] + ',' + g[1] + ')" aria-label="Gradient ' + (i + 1) + '"></button>'; }).join('') + '</div>' +
+    '<div class="sw gonly" style="margin-top:8px"><input type="color" data-c="bgc" aria-label="Gradient start"><input type="color" data-c="bg2" aria-label="Gradient end"></div>' +
+    '<label class="gonly">Gradient angle<input type="range" data-r="bga" min="0" max="360"></label>' +
+    '<label>Accent</label><div class="sw">' + sw(ACC_PRESETS, 'acc') + '<input type="color" data-c="acc" aria-label="Custom accent"></div></div></details>' +
+    '<details><summary>Footer</summary><div><label>Social handle (optional)<input type="text" data-f="handle" placeholder="@yourhandle"></label>' +
+    '<div class="shows" style="margin:10px 0"><label class="ck"><input type="checkbox" data-t="icons">Social icons</label><label class="ck"><input type="checkbox" data-t="source">Source line</label></div>' +
+    '<div class="seg"><button data-k="fp" data-v="bottom">Bottom</button><button data-k="fp" data-v="top">Top</button><button data-k="fp" data-v="hide">Hidden</button></div></div></details>' +
+    '<details><summary>Show on graphic</summary><div class="shows" id="shows"></div></details>' +
+    '<div class="pfoot"><button class="btn" id="rst">Reset to template defaults</button><div id="adm" style="display:grid;gap:8px"><button class="btn" id="tupd">Update this template with these settings</button><button class="btn" id="tnew">Save as new template variation</button></div></div>' +
+    '</aside></div></div>';
+  gid('tact').innerHTML = '<button class="btn" id="save">Save</button><button class="btn pri" id="exp">Export</button>';
+  $('adm').style.display = ADMIN ? 'grid' : 'none';
+
+  var id = q.get('id'), tid = q.get('tpl') || SET.defaultTemplate;
+  function boot() {
+    if (!st) st = stateFor(TPLS[tid] && TPLS[tid].enabled !== false ? TPLS[tid] : TPLS.discovery);
+    $('lays').innerHTML = LAYOUTS.map(function (l) { return '<button data-k="layout" data-v="' + l[0] + '"><svg viewBox="0 0 60 42"><rect width="60" height="42" fill="#d9dbe6" opacity=".5"/>' + l[2] + '</svg>' + l[1] + '</button>'; }).join('');
+    $('imgs').innerHTML = [0, 1, 2].map(function (i) { return '<button data-scene="' + i + '" style="background-image:' + scene(i) + '" aria-label="Placeholder ' + (i + 1) + '"></button>'; }).join('');
+    tplChips(); fields(); sync(); render();
+    ro = new ResizeObserver(function () { if (!dead) Poster.fit($('stage'), $('p'), st.ar); }); ro.observe($('stage'));
+  }
+  if (id) D.design(id).then(function (d) { st = D.toState(d); }, function () { S.toast('Design not found. Starting a new one.'); }).then(function () { if (!dead) boot(); });
+  else boot();
+
+  function tplChips() {
+    $('tpls').innerHTML = D.ordered(TPLS).filter(function (t) { return t.enabled !== false || t.id === st.tpl; }).map(function (t) { return '<button class="chip" data-tpl="' + t.id + '">' + esc(t.name) + '</button>'; }).join('');
+  }
+  function fields() {
+    var t = TPLS[st.tpl] || TPLS.custom;
+    $('fields').innerHTML = t.fields.map(function (k) {
+      var d = FIELDS[k];
+      return '<label>' + d[0] + (d[1] === 'area' ? '<textarea rows="3" data-f="' + k + '"></textarea>' : '<input type="' + d[1] + '" data-f="' + k + '">') + '</label>';
+    }).join('');
+    $('shows').innerHTML = t.fields.filter(function (k) { return FIELDS[k][2]; }).map(function (k) { var s = FIELDS[k][2]; return '<label class="ck"><input type="checkbox" data-t="' + s + '">' + SHOWN[s] + '</label>'; }).join('');
+    root.querySelectorAll('#fields [data-f]').forEach(function (i) { i.addEventListener('input', function () { st[i.dataset.f] = i.value; st.dirty = 1; render(); }); });
+    root.querySelectorAll('#shows [data-t]').forEach(function (c) { c.addEventListener('change', function () { st.show[c.dataset.t] = c.checked ? 1 : 0; render(); }); });
+  }
+  function sync() {
+    root.querySelectorAll('[data-f]').forEach(function (i) { i.value = st[i.dataset.f] || ''; });
+    root.querySelectorAll('[data-t]').forEach(function (c) { c.checked = !!st.show[c.dataset.t]; });
+    root.querySelectorAll('[data-r]').forEach(function (r) { r.value = st[r.dataset.r]; });
+    root.querySelectorAll('[data-c]').forEach(function (c) { c.value = st[c.dataset.c]; });
+    root.querySelectorAll('[data-font]').forEach(function (x) { x.value = st[x.dataset.font]; }); $('nm').value = st.name || '';
+  }
+  function on(sel, f) { root.querySelectorAll(sel).forEach(function (b) { b.classList.toggle('on', f(b)); }); }
+  function render() {
+    Poster.draw($('p'), st); Poster.fit($('stage'), $('p'), st.ar);
+    $('panel').dataset.bgm = st.bgm;
+    on('[data-tpl]', function (b) { return b.dataset.tpl === st.tpl; });
+    on('[data-k]', function (b) { return String(st[b.dataset.k]) === b.dataset.v; });
+    on('[data-cv]', function (b) { var a = b.dataset.cv.split('|'); return String(st[a[0]]).toLowerCase() === a[1].toLowerCase(); });
+    on('[data-g]', function (b) { var g = BG_GRAD[+b.dataset.g]; return st.bgm === 'grad' && st.bgc === g[0] && st.bg2 === g[1]; });
+    on('[data-scene]', function (b) { return !st.img && +b.dataset.scene === st.scene; });
+    var r = Poster.R[st.ar]; $('dims').textContent = Poster.NAMES[st.ar] + ', ' + r[0] + ' x ' + r[1] + ' px, ' + st.fmt;
+  }
+  // Changing template keeps typed content; untouched sample text is swapped for the new sample
+  function applyTpl(t, full) {
+    var keep = { ar: st.ar, fmt: st.fmt, id: st.id, name: st.name, img: st.img, imgId: st.imgId, dirty: st.dirty, handle: st.handle };
+    var base = stateFor(t, false);
+    if (full || !st.dirty) { base = stateFor(t, true); if (full) { keep.img = null; keep.imgId = null; keep.dirty = 0; } }
+    else CONTENT_KEYS.forEach(function (k) { if (k !== 'label' && k !== 'handle') base[k] = st[k]; });
+    st = Object.assign(base, keep); fields(); sync(); tplChips(); render();
+  }
+  root.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
+    if (d.tpl) applyTpl(TPLS[d.tpl], false);
+    else if (d.k) { st[d.k] = d.k === 'flip' ? Number(d.v) : d.v; render(); }
+    else if (d.cv) { var a = d.cv.split('|'); st[a[0]] = a[1]; if (a[0] === 'bgc') st.bgm = 'solid'; sync(); render(); }
+    else if (d.g) { var g = BG_GRAD[+d.g]; st.bgm = 'grad'; st.bgc = g[0]; st.bg2 = g[1]; st.bga = g[2]; sync(); render(); }
+    else if (d.scene) { st.scene = +d.scene; st.img = null; st.imgId = null; render(); }
+  });
+  root.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset.r) { st[t.dataset.r] = +t.value; render(); }
+    else if (t.dataset.c) { st[t.dataset.c] = t.value; if (t.dataset.c === 'bgc' && st.bgm !== 'grad') st.bgm = 'solid'; render(); }
+    else if (t.dataset.font) { st[t.dataset.font] = t.value; render(); }
+    else if (t.id === 'nm') st.name = t.value;
+    else if (t.dataset.f === 'handle') { st.handle = t.value; render(); }
+  });
+  root.addEventListener('change', function (e) { var t = e.target; if (t.dataset.t === 'icons' || t.dataset.t === 'source') { st.show[t.dataset.t] = t.checked ? 1 : 0; render(); } });
+  $('file').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    st.img = URL.createObjectURL(f); st.imgId = null; uploading = true; $('upl').textContent = 'Uploading to Cloudinary...'; render();
+    D.upload(f).then(function (m) { st.img = m.url; st.imgId = m.publicId; uploading = false; $('upl').textContent = 'Uploaded (' + m.width + ' x ' + m.height + ' px).'; render(); })
+      .catch(function (er) { uploading = false; $('upl').textContent = 'Upload failed: ' + er.message + '. Preview only; saving needs an uploaded image.'; });
+  });
+  $('fall').onclick = function () { st.bf = st.hf; st.mf = st.hf; sync(); render(); };
+  $('rst').onclick = function () { applyTpl(TPLS[st.tpl], true); S.toast('Reset to template defaults'); };
+  gid('save').onclick = function () {
+    if (uploading || (st.img && st.img.indexOf('blob:') === 0)) { S.toast('Wait for the image upload to finish.'); return; }
+    st.name = $('nm').value || st.title;
+    D.saveDesign(st.id, D.pack(st)).then(function (rid) { st.id = rid; history.replaceState(null, '', '/studio/create/?id=' + rid); S.toast('Design saved'); }).catch(function (er) { S.toast('Could not save: ' + er.message); });
+  };
+  gid('exp').onclick = function () {
+    if (uploading) { S.toast('Wait for the image upload to finish.'); return; }
+    var btn = gid('exp'); btn.disabled = true; btn.textContent = 'Preparing...';
+    Poster.exportImage(st, st.fmt).then(function (u) { Poster.download(u, st, st.fmt); S.toast('Downloaded'); }).catch(function (er) { S.toast('Export failed: ' + er.message); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Export'; });
+  };
+  // Template saving is admin only (the Firestore rules enforce it too)
+  function tplData() { var t = TPLS[st.tpl]; return { config: clone(CONFIG_KEYS.reduce(function (o, k) { o[k] = st[k]; return o; }, {})), meta: st.meta, label: st.label, name: t.name, kind: t.kind || t.id, fields: t.fields, sample: t.sample, enabled: true }; }
+  $('tupd').onclick = function () {
+    var d = tplData(); delete d.sample; delete d.fields;
+    D.saveTemplate(st.tpl, d).then(function () { Object.assign(TPLS[st.tpl], { config: d.config, meta: d.meta, label: d.label }); S.toast('Template updated'); }, function () { S.toast('Only admins can change templates.'); });
+  };
+  $('tnew').onclick = function () {
+    var n = prompt('Name for the new template variation'); if (!n) return;
+    var d = tplData(); d.name = n;
+    D.addTemplate(d).then(function (nid) { d.id = nid; TPLS[nid] = d; st.tpl = nid; tplChips(); render(); S.toast('Template saved'); }, function () { S.toast('Only admins can change templates.'); });
+  };
+  return function () { dead = true; if (ro) ro.disconnect(); gid('tact').innerHTML = ''; };
+} };
+
+</script>
+</body></html>
